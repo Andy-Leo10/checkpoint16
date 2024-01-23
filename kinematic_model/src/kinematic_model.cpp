@@ -42,10 +42,10 @@ private:
         Eigen::Matrix<float, 4, 1> input_raw;
         Eigen::Matrix<float, 4, 1> wheel_velocities;
         input_raw = Eigen::Map<const Eigen::Matrix<float, 4, 1>>(msg->data.data());
-        wheel_velocities << input_raw[0], 
-                            input_raw[1], 
-                            input_raw[3],
-                            input_raw[2];
+        wheel_velocities << input_raw[3], 
+                            input_raw[2], 
+                            input_raw[0],
+                            input_raw[1];
         robot_velocities = M_ * wheel_velocities;
         RCLCPP_INFO(this->get_logger(), "Linear: %f, %f, %f", robot_velocities[0], robot_velocities[1], robot_velocities[2]);
 
