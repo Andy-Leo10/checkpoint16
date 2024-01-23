@@ -1,33 +1,66 @@
-// humble
-
-#include <iostream>
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/float32_multi_array.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 #include <eigen3/Eigen/Dense>
-#include <rclcpp/rclcpp.hpp>
 
-class EigenTestNode : public rclcpp::Node
+class KinematicModel : public rclcpp::Node
 {
 public:
-    EigenTestNode()
-        : Node("eigen_test_node")
+    KinematicModel(float half_length=85.0, float half_wheel_separation=134.845, float radius=50.0)
+        : Node("kinematic_model")
     {
-        // Create a 3x3 matrix
-        Eigen::Matrix3f m = Eigen::Matrix3f::Random();
+        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+        subscription_ = this->create_subscription<std_msgs::msg::Float32MultiArray>(
+            "wheel_speed", 10, std::bind(&KinematicModel::callback, this, std::placeholders::_1));
+        l_=half_length;
+        w_=half_wheel_separation;
+        r_=radius;
+        // Initialize the transformation matrix M
+        M_ << 1,1,1,1,
+              1,-1,-1,1,
+              -1/(l_+w_),1/(l_+w_),-1/(l_+w_),1/(l_+w_);
+        M_ = r_/4*M_;
+    }
 
-        // Create a 3x1 vector
-        Eigen::Vector3f v = Eigen::Vector3f::Random();
+private:
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+    rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr subscription_;
+    // 4 wheel omnidirectional robot dimensions
+    float l_;
+    float w_;
+    float r_; // wheel radius
+    // Transformation matrix from wheels velocities to robot velocities
+    Eigen::Matrix<float, 3, 4> M_;
 
-        // Perform a matrix-vector multiplication
-        Eigen::Vector3f result = m * v;
+    void callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg)
+    {
+        auto twist = geometry_msgs::msg::Twist();
+        Eigen::Matrix<float, 3, 1> robot_velocities;
+        // Transform the four wheel speeds into a twist message
+        // [robot_velocities]=M*[wheel_velocities] 
+        // [3x1]=[3x4]*[4x1]
+        Eigen::Matrix<float, 4, 1> input_raw;
+        Eigen::Matrix<float, 4, 1> wheel_velocities;
+        input_raw = Eigen::Map<const Eigen::Matrix<float, 4, 1>>(msg->data.data());
+        wheel_velocities << input_raw[0], 
+                            input_raw[1], 
+                            input_raw[3],
+                            input_raw[2];
+        robot_velocities = M_ * wheel_velocities;
+        RCLCPP_INFO(this->get_logger(), "Linear: %f, %f, %f", robot_velocities[0], robot_velocities[1], robot_velocities[2]);
 
-        // Print the result
-        RCLCPP_INFO(this->get_logger(), "The result of the multiplication is:\n\n %f, %f, %f", result[0], result[1], result[2]);
+        twist.linear.x = robot_velocities[0];
+        twist.linear.y = -robot_velocities[1];
+        twist.angular.z = robot_velocities[2];
+
+        publisher_->publish(twist);
     }
 };
 
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<EigenTestNode>());
+    rclcpp::spin(std::make_shared<KinematicModel>());
     rclcpp::shutdown();
     return 0;
 }

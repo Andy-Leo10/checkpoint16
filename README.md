@@ -28,3 +28,6 @@ Make the robot follow follows a 8 path
 
     ros2 launch eight_trajectory eight_trajectory.launch.py
 
+
+### Knowledge
+![description: kinematic_model](pictures/kinematic_model.png)

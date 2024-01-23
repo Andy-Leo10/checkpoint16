@@ -11,6 +11,7 @@ public:
         pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("wheel_speed", 10);
         RCLCPP_INFO(this->get_logger(), "Initializing basic Holonomic Controller node");
         RCLCPP_INFO(this->get_logger(), "Delay time: %d", delay_);
+        
     }
 
 public:
@@ -85,6 +86,7 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<HolonomicController>(3);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     node->move_forward();
     node->move_backward();
     node->move_left();
@@ -95,3 +97,4 @@ int main(int argc, char **argv)
     rclcpp::shutdown();
     return 0;
 }
+

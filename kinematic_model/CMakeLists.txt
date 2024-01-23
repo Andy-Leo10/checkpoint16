@@ -12,6 +12,23 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(Eigen3 REQUIRED) ## MATRICES
+include_directories(${Eigen3_INCLUDE_DIRS})
+
+
+add_executable(kinematic_model src/kinematic_model.cpp)
+ament_target_dependencies(kinematic_model rclcpp std_msgs geometry_msgs Eigen3)
+
+install(TARGETS
+  kinematic_model
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY 
+	launch
+    DESTINATION share/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
