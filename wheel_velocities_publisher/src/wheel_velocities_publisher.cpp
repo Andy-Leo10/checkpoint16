@@ -1,33 +1,97 @@
-// humble
-
-#include <iostream>
-#include <eigen3/Eigen/Dense>
+#include <chrono>
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 
-class EigenTestNode : public rclcpp::Node
+class HolonomicController : public rclcpp::Node
 {
 public:
-    EigenTestNode()
-        : Node("eigen_test_node")
+    HolonomicController(int delay = 5)
+        : Node("holonomic_controller"), delay_(delay)
     {
-        // Create a 3x3 matrix
-        Eigen::Matrix3f m = Eigen::Matrix3f::Random();
+        pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("wheel_speed", 10);
+        RCLCPP_INFO(this->get_logger(), "Initializing basic Holonomic Controller node");
+        RCLCPP_INFO(this->get_logger(), "Delay time: %d", delay_);
+    }
 
-        // Create a 3x1 vector
-        Eigen::Vector3f v = Eigen::Vector3f::Random();
+public:
+    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr pub_;
+    int delay_;
+    std_msgs::msg::Float32MultiArray msg;
 
-        // Perform a matrix-vector multiplication
-        Eigen::Vector3f result = m * v;
+    void move_forward()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {1.0, 1.0, 1.0, 1.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Moving forward");
+        rclcpp::sleep_for(std::chrono::seconds(delay_));
+    }
 
-        // Print the result
-        RCLCPP_INFO(this->get_logger(), "The result of the multiplication is:\n\n %f, %f, %f", result[0], result[1], result[2]);
+    void move_backward()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {-1.0, -1.0, -1.0, -1.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Moving backward");
+        rclcpp::sleep_for(std::chrono::seconds(delay_));
+    }
+
+    void move_left()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {-1.0, 1.0, -1.0, 1.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Moving left");
+        rclcpp::sleep_for(std::chrono::seconds(delay_));
+    }
+
+    void move_right()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {1.0, -1.0, 1.0, -1.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Moving right");
+        rclcpp::sleep_for(std::chrono::seconds(delay_));
+    }
+
+    void move_clockwise()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {1.0, -1.0, -1.0, 1.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Moving clockwise");
+        rclcpp::sleep_for(std::chrono::seconds(delay_));
+    }
+
+    void move_counterclockwise()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {-1.0, 1.0, 1.0, -1.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Moving counterclockwise");
+        rclcpp::sleep_for(std::chrono::seconds(delay_));
+    }
+
+    void stop()
+    {
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data = {0.0, 0.0, 0.0, 0.0};
+        pub_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Stop");
     }
 };
 
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<EigenTestNode>());
+    auto node = std::make_shared<HolonomicController>(3);
+    node->move_forward();
+    node->move_backward();
+    node->move_left();
+    node->move_right();
+    node->move_clockwise();
+    node->move_counterclockwise();
+    node->stop();
     rclcpp::shutdown();
     return 0;
 }
