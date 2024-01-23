@@ -16,10 +16,10 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
 
     # MoveItCpp demo executable
-    kinematic_model_node = Node(
-        name="kinematic_model_node",
-        package="kinematic_model",
-        executable="kinematic_model",
+    eight_trajectory_node = Node(
+        name="eight_trajectory_node",
+        package="eight_trajectory",
+        executable="eight_trajectory",
         output="screen",
         parameters=[
             {'use_sim_time': use_sim_time},
@@ -28,5 +28,5 @@ def generate_launch_description():
 
     return LaunchDescription([
         use_sim_time_arg,
-        kinematic_model_node,
+        eight_trajectory_node,
     ])

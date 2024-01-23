@@ -12,6 +12,27 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(Eigen3 REQUIRED) ## MATRICES
+include_directories(${Eigen3_INCLUDE_DIRS})
+
+
+add_executable(eight_trajectory src/eight_trajectory.cpp)
+ament_target_dependencies(eight_trajectory rclcpp std_msgs geometry_msgs nav_msgs tf2 tf2_ros Eigen3)
+
+install(TARGETS
+  eight_trajectory
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY 
+	launch
+    DESTINATION share/${PROJECT_NAME}
+)
+
+
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
