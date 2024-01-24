@@ -47,7 +47,7 @@ private:
                             input_raw[0],
                             input_raw[1];
         robot_velocities = M_ * wheel_velocities;
-        RCLCPP_INFO(this->get_logger(), "Linear: %f, %f, %f", robot_velocities[0], robot_velocities[1], robot_velocities[2]);
+        RCLCPP_INFO(this->get_logger(), "vx-vy-wz: %f, %f, %f", robot_velocities[0], robot_velocities[1], robot_velocities[2]);
 
         twist.linear.x = robot_velocities[0];
         twist.linear.y = -robot_velocities[1];

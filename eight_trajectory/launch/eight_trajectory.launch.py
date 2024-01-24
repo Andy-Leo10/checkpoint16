@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 from launch.actions import ExecuteProcess
 from ament_index_python.packages import get_package_share_directory
 from moveit_configs_utils import MoveItConfigsBuilder
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, TimerAction, LogInfo
 from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
@@ -25,8 +25,22 @@ def generate_launch_description():
             {'use_sim_time': use_sim_time},
         ],
     )
+    
+    # MoveItCpp demo executable
+    kinematic_model_node = Node(
+        name="kinematic_model_node",
+        package="kinematic_model",
+        executable="kinematic_model",
+        output="screen",
+        parameters=[
+            {'use_sim_time': use_sim_time},
+        ],
+    )
 
     return LaunchDescription([
         use_sim_time_arg,
-        eight_trajectory_node,
+        kinematic_model_node,
+        LogInfo(msg=["Starting Eight Trajectory Node..."]),
+        TimerAction(period=5.0, 
+                    actions=[eight_trajectory_node]),
     ])
